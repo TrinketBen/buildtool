@@ -52,7 +52,7 @@ namespace SuperUnityBuild.BuildTool
                 }
                 else
                 {
-                    EditorGUILayout.IntField("Build Counter", BuildSettings.productParameters.buildCounter);
+                    BuildSettings.productParameters.buildCounter = EditorGUILayout.IntField("Build Counter", BuildSettings.productParameters.buildCounter);
                 }
 
                 if (!autoGenerate.boolValue && !syncWithPlayerSettings.boolValue && GUILayout.Button("Generate Version Now", GUILayout.ExpandWidth(true)))

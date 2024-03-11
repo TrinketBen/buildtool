@@ -456,6 +456,9 @@ namespace SuperUnityBuild.BuildTool
             // Build player
             FileUtil.DeleteFileOrDirectory(buildPath);
 
+            // Create directory
+            Directory.CreateDirectory(buildPath);
+
             string error = "";
 
             BuildReport buildReport = BuildPipeline.BuildPlayer(new BuildPlayerOptions

@@ -363,14 +363,31 @@ namespace SuperUnityBuild.BuildTool
 
                 // Parse build config and perform build.
                 string notification = string.Format("Building ({0}/{1}): ", i + 1, buildConfigs.Length);
-                BuildSettings.projectConfigurations.ParseKeychain(configKey, out BuildReleaseType releaseType, out BuildPlatform platform, out BuildArchitecture arch,
-                    out BuildScriptingBackend scriptingBackend, out BuildDistribution dist);
-                bool success = BuildPlayer(notification, releaseType, platform, arch, scriptingBackend, dist, buildTime, options, configKey);
-
-                if (success)
-                    ++successCount;
-                else
+                var parseSuccess = BuildSettings.projectConfigurations.ParseKeychain(configKey,
+                    out BuildReleaseType releaseType,
+                    out BuildPlatform platform,
+                    out BuildArchitecture arch,
+                    out BuildScriptingBackend scriptingBackend,
+                    out BuildDistribution dist
+                );
+                if(!parseSuccess) {
+                    var parsedElements = string.Join(", ",
+                        $"{nameof(BuildReleaseType)}: {releaseType}",
+                        $"{nameof(BuildPlatform)}: {platform}",
+                        $"{nameof(BuildArchitecture)}: {arch}",
+                        $"{nameof(BuildScriptingBackend)}: {scriptingBackend}",
+                        $"{nameof(BuildDistribution)}: {dist}"
+                    );
+                    Debug.LogError($"Failed to parse an element of the keychain {configKey}: {parsedElements}");
                     ++failCount;
+                }
+                else {
+                    var buildSuccess = BuildPlayer(notification, releaseType, platform, arch, scriptingBackend, dist, buildTime, options, configKey);
+                    if(buildSuccess)
+                        ++successCount;
+                    else
+                        ++failCount;
+                }
             }
 
             PerformPostBuild();

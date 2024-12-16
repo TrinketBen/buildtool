@@ -13,6 +13,8 @@ namespace SuperUnityBuild.BuildTool
 {
     public static class BuildProject
     {
+        public static BuildReport BuildReport;
+
         #region Constants & Enums
 
         private const string BUILD_TYPE = "BUILD_TYPE_";
@@ -478,7 +480,7 @@ namespace SuperUnityBuild.BuildTool
 
             string error = "";
 
-            BuildReport buildReport = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            BuildReport = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
                 locationPathName = Path.Combine(buildPath, binName),
                 options = options,
@@ -486,8 +488,8 @@ namespace SuperUnityBuild.BuildTool
                 target = architecture.target
             });
 
-            if (buildReport.summary.result == BuildResult.Failed)
-                error = buildReport.summary.totalErrors + " occurred.";
+            if (BuildReport.summary.result == BuildResult.Failed)
+                error = BuildReport.summary.totalErrors + " occurred.";
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -620,11 +622,15 @@ namespace SuperUnityBuild.BuildTool
                     // Check if execute method has been overriden.
                     MethodInfo m = action.GetType().GetMethod("PerBuildExecute");
 
-                    if (m.GetBaseDefinition().DeclaringType != m.DeclaringType && action.actionType == BuildAction.ActionType.PerPlatform)
-                    {
+                    if (m.GetBaseDefinition().DeclaringType != m.DeclaringType && action.actionType == BuildAction.ActionType.PerPlatform) {
+                        // Check to see if the build succeeded; we may not execute if it did not.
+                        var shouldRunForBuildResult = !action.skipIfBuildFailed || BuildReport?.summary.totalErrors == 0;
+                        
                         // Check build filter and execute if true.
-                        if (action.filter == null || action.filter.Evaluate(releaseType, platform, architecture, distribution, configKey) && action.actionEnabled)
-                        {
+                        if (
+                            shouldRunForBuildResult && action.actionEnabled &&
+                            (action.filter == null || action.filter.Evaluate(releaseType, platform, architecture, distribution, configKey))
+                        ) {
                             BuildNotificationList.instance.AddNotification(new BuildNotification(
                                 BuildNotification.Category.Notification,
                                 string.Format("Performing {0}Build Action ({1}/{2}):", notificationLabel, i + 1, buildActions.Length), string.Format("{0}: {1}", action, configKey),

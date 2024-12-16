@@ -17,6 +17,7 @@ namespace SuperUnityBuild.BuildTool
         public string actionName = string.Empty;
         public string note = string.Empty;
         public bool actionEnabled = true;
+        public bool skipIfBuildFailed = false;
         [Tooltip("BuildAction should run when 'Configure Editor Environment' button is clicked")] public bool configureEditor = false;
         public BuildFilter filter = new BuildFilter();
 
